@@ -3,8 +3,6 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(cors());
-
 const requestLogger = (request, response, next) => {
   console.log("Method:", request.method);
   console.log("Path:", request.path);
@@ -17,8 +15,10 @@ const unkownEndpoint = (request, response) => {
   response.status(404).send({ error: "unkown endpoint" });
 };
 
+app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
+app.use(express.static("dist"));
 
 let notes = [
   { id: 1, content: "HTML is easy", important: true },
