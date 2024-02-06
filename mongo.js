@@ -1,14 +1,7 @@
 const mongoose = require("mongoose");
+const config = require("./utils/config");
 
-if (process.argv.length < 3) {
-  console.log("give password as argument");
-  process.exit();
-}
-
-const password = process.argv[2];
-
-const url = `mongodb+srv://skandermanai:${password}@cluster0.r9rnpaj.mongodb.net/notesApp?retryWrites=true&w=majority`;
-
+const url = config.MONGODB_URI;
 mongoose.set("strictQuery", false);
 mongoose.connect(url);
 
@@ -19,19 +12,19 @@ const noteSchema = new mongoose.Schema({
 
 const Note = mongoose.model("Note", noteSchema);
 
-// const note = new Note({
-//   content: "Mongoose makes things easy",
-//   important: true,
-// });
+const note = new Note({
+  content: "Testing backend",
+  important: false,
+});
 
-// note.save().then((result) => {
-//   console.log("note saved!");
-//   mongoose.connection.close();
-// });
-
-Note.find({ important: true }).then((result) => {
-  result.forEach((note) => {
-    console.log(note);
-  });
+note.save().then((result) => {
+  console.log("note saved!");
   mongoose.connection.close();
 });
+
+// Note.find({ important: true }).then((result) => {
+//   result.forEach((note) => {
+//     console.log(note);
+//   });
+//   mongoose.connection.close();
+// });
