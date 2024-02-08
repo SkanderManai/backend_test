@@ -22,7 +22,6 @@ notesRouter.delete("/:id", async (request, response, next) => {
 
 notesRouter.post("/", async (request, response, next) => {
   const body = request.body;
-
   const note = new Note({
     content: body.content,
     important: Boolean(body.important) || false,
