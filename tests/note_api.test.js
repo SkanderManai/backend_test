@@ -8,12 +8,13 @@ const api = supertest(app);
 const Note = require("../models/note");
 const User = require("../models/user");
 
+const password = "sgaffas123";
+
 beforeEach(async () => {
   await Note.deleteMany({});
   await User.deleteMany({});
-  console.log("cleared");
 
-  const passwordHash = await bcrypt.hash("sekret", 10);
+  const passwordHash = await bcrypt.hash(password, 10);
   const user = new User({ username: "root", passwordHash });
 
   await user.save();
@@ -21,8 +22,6 @@ beforeEach(async () => {
   const noteObjects = helper.initialNotes.map((note) => new Note(note));
   const promiseArray = noteObjects.map((note) => note.save());
   await Promise.all(promiseArray);
-
-  console.log("done");
 });
 
 describe("when there is intitially some notes saved", () => {
@@ -76,7 +75,10 @@ describe("viewing a specific note", () => {
 describe("addition of a new note", () => {
   test("succeeds with valid data", async () => {
     const usersAtStart = await User.find({});
-    console.log(usersAtStart);
+    const response = await api
+      .post("/api/login")
+      .send({ username: usersAtStart[0].username, password });
+    // console.log(response);
     const newNote = {
       content: "async/await simplifies making async calls",
       important: true,
@@ -85,6 +87,7 @@ describe("addition of a new note", () => {
 
     await api
       .post("/api/notes")
+      .set({ Authorization: `Bearer ${response.body.token}` })
       .send(newNote)
       .expect(201)
       .expect("Content-Type", /application\/json/);
@@ -99,12 +102,22 @@ describe("addition of a new note", () => {
 
   test("fails with status code 400 if data invalid", async () => {
     const usersAtStart = await User.find({});
+    // console.log(usersAtStart);
+    const response = await api.post("/api/login").send({
+      username: usersAtStart[0].username,
+      password,
+    });
+
     const newNote = {
       important: true,
       userId: usersAtStart[0]._id,
     };
 
-    await api.post("/api/notes").send(newNote).expect(400);
+    await api
+      .post("/api/notes")
+      .set("authorization", `Bearer ${response.body.token}`)
+      .send(newNote)
+      .expect(400);
 
     const notesAtEnd = await helper.notesInDb();
 
